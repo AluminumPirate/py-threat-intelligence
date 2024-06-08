@@ -1,8 +1,17 @@
+import sys
+import os
+
+# Ensure the root directory is in the Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.routers import domain
 from app.utils.scheduler import start_scheduler
+
+# Import service modules to ensure they are registered
+from app.services import virus_total_service, whois_service
 
 app = FastAPI()
 
