@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+pyvenv.cfg
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+
+Include/
+Lib/
+Scripts/
+other/
+
+# Environments
+.env
+.env.local
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env.*
+
+# VS Code
+.vscode/
+
+# Pycharm
+.idea/
+
+# Docker
+docker-compose.override.yml
+
+# Local virtualenv
+venv
+env
