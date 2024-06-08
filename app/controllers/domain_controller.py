@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models import Domain, Scan
-from app.services.virus_total_service import get_virus_total_info
-from app.services.whois_service import get_whois_info
-from app.schemas import DomainCreate, ScanCreate
+from app.schemas import DomainCreate
+from app.services.scan_service import perform_scans
+import uuid
 
 
 def get_domain(domain_name: str, db: Session):
@@ -27,15 +27,32 @@ def scan_domain(domain_name: str, db: Session):
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
 
-    virus_total_info = get_virus_total_info(domain_name)
-    whois_info = get_whois_info(domain_name)
-
+    # Create initial Scan record with status "scanning"
     scan = Scan(
+        id=uuid.uuid4(),
         domain_id=domain.id,
-        status="completed",
-        data={"virus_total": virus_total_info, "whois": whois_info}
+        status="scanning",
+        data={}
     )
     db.add(scan)
     db.commit()
     db.refresh(scan)
+
+    try:
+        # Perform the scans using the generic scan service
+        results, scan_status = perform_scans(domain_name)
+
+        # Update Scan record with results and change status accordingly
+        scan.data = results
+        scan.status = scan_status
+        db.commit()
+        db.refresh(scan)
+    except Exception as e:
+        # Update Scan record with status "failed" in case of an error
+        scan.status = "failed"
+        scan.data = {"error": str(e)}
+        db.commit()
+        db.refresh(scan)
+        raise HTTPException(status_code=500, detail=str(e))
+
     return scan

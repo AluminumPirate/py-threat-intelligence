@@ -9,6 +9,8 @@ VIRUSTOTAL_URL = "https://www.virustotal.com/api/v3/domains/"
 
 
 def get_virus_total_info(domain_name: str):
+    # must implement error key in return json if error occurred
+
     headers = {
         "x-apikey": VIRUSTOTAL_API_KEY
     }
