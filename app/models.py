@@ -38,14 +38,14 @@ class Domain(Base):
     status = Column(Enum(DomainStatus), default=DomainStatus.pending, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    scans = relationship("Scan", back_populates="domain")
+    scans = relationship("Scan", back_populates="domain", cascade="all, delete, delete-orphan")
 
 
 class Scan(Base):
     __tablename__ = 'scans'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    domain_id = Column(UUID(as_uuid=True), ForeignKey('domains.id'), nullable=False)
+    domain_id = Column(UUID(as_uuid=True), ForeignKey('domains.id', ondelete='SET NULL'), nullable=True)
     data = Column(JSON, nullable=False)
     status = Column(Enum(ScanStatus), default=ScanStatus.scanning, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

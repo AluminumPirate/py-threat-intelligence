@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from typing import Any, Dict
 from .base_service import BaseService
 
 load_dotenv()
@@ -11,7 +12,7 @@ WHOIS_URL = "https://whoisjson.com/api/v1/whois"
 
 @BaseService.register("whois")
 class WhoisService(BaseService):
-    def get_info(self, domain_name: str):
+    def get_info(self, domain_name: str) -> Dict[str, Any]:
         headers = {
             "Authorization": f"TOKEN={WHOIS_API_KEY}"
         }

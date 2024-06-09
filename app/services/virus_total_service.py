@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from typing import Any, Dict
 from .base_service import BaseService
 
 load_dotenv()
@@ -11,7 +12,7 @@ VIRUSTOTAL_URL = "https://www.virustotal.com/api/v3/domains/"
 
 @BaseService.register("virustotal")
 class VirusTotalService(BaseService):
-    def get_info(self, domain_name: str):
+    def get_info(self, domain_name: str) -> Dict[str, Any]:
         headers = {
             "x-apikey": VIRUSTOTAL_API_KEY
         }

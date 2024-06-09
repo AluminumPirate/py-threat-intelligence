@@ -1,8 +1,9 @@
 import re
+from typing import Optional
 from urllib.parse import urlparse
 
 
-def validate_domain_name(domain_name: str) -> str:
+def validate_domain_name(domain_name: str) -> Optional[str]:
     domain_name = clean_domain_name(domain_name)
     return domain_name if is_valid_domain(domain_name) else None
 

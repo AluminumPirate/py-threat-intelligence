@@ -7,12 +7,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
-from app.routers import domain
+from app.routers import domain, jobs
 from app.models import *
-from app.utils.scheduler import start_scheduler
 
 # Import service modules to ensure they are registered
-from app.services import virus_total_service, whois_service
+# from app.services import virus_total_service, whois_service, shodan_service
+from app.services import virus_total_service, whois_service, google_dns_service, cloudflare_dns_service, \
+    hackertarget_dns_service
 
 app = FastAPI()
 
@@ -27,12 +28,10 @@ app.add_middleware(
 
 # Include routers
 app.include_router(domain.router, prefix="/domains", tags=["domains"])
+app.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 
 # Create (if not exists) the database tables
 Base.metadata.create_all(bind=engine)
-
-# Start the scheduler
-start_scheduler()
 
 if __name__ == '__main__':
     import uvicorn

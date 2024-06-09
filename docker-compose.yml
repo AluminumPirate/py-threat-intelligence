@@ -1,24 +1,42 @@
-version: "3.8"
+version: '3.8'
 
 services:
   db:
-    image: postgres
+    image: postgres:16.3
     environment:
-      POSTGRES_USER: youruser
-      POSTGRES_PASSWORD: yourpassword
-      POSTGRES_DB: yourdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
 
-  web:
-    build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 80 --reload
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      API_URL: ${API_URL}
+      ENVIRONMENT: docker
     volumes:
       - .:/app
-    ports:
-      - "80:80"
     depends_on:
       - db
+    ports:
+      - "3004:3004"
+
+  scheduler:
+    build:
+      context: ./scheduler
+      dockerfile: Dockerfile
+    environment:
+      API_URL: http://api:3004
+      ENVIRONMENT: docker
+    depends_on:
+      - api
+    volumes:
+      - ./scheduler:/app
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  db-data:

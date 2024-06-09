@@ -49,3 +49,11 @@ class ScanRead(ScanBase):
 
     class Config:
         from_attributes = True
+
+
+class ScanWithDomainRead(BaseModel):
+    domain_name: str
+    scan: ScanRead
+
+    class Config:
+        from_attributes = True

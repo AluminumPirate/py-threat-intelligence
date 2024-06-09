@@ -1,3 +1,6 @@
+from typing import List, Tuple, Optional, Type
+
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from pydantic_core import ValidationError as PydanticValidationError
 from fastapi import HTTPException
@@ -8,40 +11,55 @@ from app.schemas import DomainCreate
 import uuid
 
 
-def get_domain(domain_name: str, db: Session):
+def get_domain(domain_name: str, db: Session) -> Optional[Domain]:
     try:
         return db.query(Domain).filter(Domain.name == domain_name).first()
     except PydanticValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain name format")
 
 
-def get_domain_with_latest_scan(domain_name: str, db: Session):
+def get_all_scans_for_domain(domain_name: str, db: Session) -> List[Scan]:
+    domain = db.query(Domain).filter(Domain.name == domain_name).first()
+    if not domain:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found")
+
+    scans = db.query(Scan).filter(Scan.domain_id == domain.id).order_by(desc(Scan.created_at)).all()
+    return scans
+
+
+def get_domain_with_latest_scan(domain_name: str, db: Session, exclude_failed: bool = True) -> Tuple[Optional[Domain], Optional[Scan]]:
     try:
-        domain = db.query(Domain).filter(Domain.name == domain_name).first()
+        domain: Optional[Domain] = db.query(Domain).filter(Domain.name == domain_name).first()
+        last_scan: Optional[Scan] = None
+
         if domain:
-            last_scan = db.query(Scan).filter(Scan.domain_id == domain.id).order_by(Scan.created_at.desc()).first()
-            return domain, last_scan.to_dict() if last_scan else None
-        return None, None
+            query = db.query(Scan).filter(Scan.domain_id == domain.id)
+            if exclude_failed:
+                query = query.filter(Scan.status != ScanStatus.failed)
+            last_scan = query.order_by(desc(Scan.created_at)).first()
+
+        return domain, last_scan
+
     except PydanticValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain name format")
 
 
-def create_domain(domain_data: DomainCreate, db: Session):
+def create_domain(domain_data: DomainCreate, db: Session) -> Domain:
     if db.query(Domain).filter(Domain.name == domain_data.name).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Domain already exists")
 
-    new_domain = Domain(name=domain_data.name, status=DomainStatus.pending)
+    new_domain: Domain = Domain(name=domain_data.name, status=DomainStatus.pending)
     db.add(new_domain)
     db.commit()
     db.refresh(new_domain)
     return new_domain
 
 
-def get_all_domains(db: Session):
+def get_all_domains(db: Session) -> list[Type[Domain]]:
     return db.query(Domain).all()
 
 
-def scan_domain(domain_name: str, db: Session):
+def scan_domain(domain_name: str, db: Session) -> Scan:
     domain = get_domain(domain_name, db)
     if not domain:
         # Add domain to analysis list if not found
@@ -87,3 +105,15 @@ def scan_domain(domain_name: str, db: Session):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
     return scan
+
+
+def scan_domains_job(db: Session) -> list[tuple[Scan, Type[Domain]]]:
+    domains_list = get_all_domains(db)
+
+    scans_with_domains = []
+
+    for domain in domains_list:
+        scan = scan_domain(domain.name, db)
+        scans_with_domains.append((scan, domain))
+
+    return scans_with_domains
