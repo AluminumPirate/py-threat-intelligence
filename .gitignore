@@ -7,6 +7,8 @@ pyvenv.cfg
 # C extensions
 *.so
 
+test/
+
 # Distribution / packaging
 .Python
 env/
