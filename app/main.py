@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(domain.router, prefix="/domain", tags=["domain"])
+app.include_router(domain.router, prefix="/domains", tags=["domains"])
 
 # Create (if not exists) the database tables
 Base.metadata.create_all(bind=engine)

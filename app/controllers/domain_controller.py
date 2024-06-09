@@ -1,27 +1,36 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
+from pydantic_core import ValidationError as PydanticValidationError
+from fastapi import HTTPException
+from fastapi import status
 from app.models import Domain, Scan, DomainStatus, ScanStatus
-from app.schemas import DomainCreate
 from app.services.scan_service import perform_scans
+from app.schemas import DomainCreate
 import uuid
 
 
 def get_domain(domain_name: str, db: Session):
-    return db.query(Domain).filter(Domain.name == domain_name).first()
+    try:
+        return db.query(Domain).filter(Domain.name == domain_name).first()
+    except PydanticValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain name format")
 
 
 def get_domain_with_latest_scan(domain_name: str, db: Session):
-    domain = db.query(Domain).filter(Domain.name == domain_name).first()
-    if domain:
-        last_scan = db.query(Scan).filter(Scan.domain_id == domain.id).order_by(Scan.created_at.desc()).first()
-        return domain, last_scan.to_dict() if last_scan else None
-    return None, None
+    try:
+        domain = db.query(Domain).filter(Domain.name == domain_name).first()
+        if domain:
+            last_scan = db.query(Scan).filter(Scan.domain_id == domain.id).order_by(Scan.created_at.desc()).first()
+            return domain, last_scan.to_dict() if last_scan else None
+        return None, None
+    except PydanticValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain name format")
 
 
 def create_domain(domain_data: DomainCreate, db: Session):
     if db.query(Domain).filter(Domain.name == domain_data.name).first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain already exists")
-    new_domain = Domain(name=domain_data.name)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Domain already exists")
+
+    new_domain = Domain(name=domain_data.name, status=DomainStatus.pending)
     db.add(new_domain)
     db.commit()
     db.refresh(new_domain)
@@ -56,16 +65,15 @@ def scan_domain(domain_name: str, db: Session):
 
         # Update Scan record with results and change status accordingly
         scan.data = results
-        scan.status = scan_status
+        scan.status = ScanStatus[scan_status.replace(' ', '_')]  # Convert status to enum compatible
         db.commit()
         db.refresh(scan)
 
         # Update domain status to scanned if the scan is successful
-        if scan_status == ScanStatus.completed or scan_status == ScanStatus.partially_succeeded:
+        if scan_status == "completed":
             domain.status = DomainStatus.scanned
         else:
             pass
-            # if it never succeeded it would stay pending if it ever completed ot partially it's updated to be scanned
             # domain.status = DomainStatus.pending
 
         db.commit()
