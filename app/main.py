@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.routers import domain
+from app.models import *
 from app.utils.scheduler import start_scheduler
 
 # Import service modules to ensure they are registered

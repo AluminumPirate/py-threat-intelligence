@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from models import ScanStatus
 import uuid
 from datetime import datetime
 
@@ -13,6 +14,7 @@ class DomainCreate(DomainBase):
 
 class DomainRead(DomainBase):
     id: uuid.UUID
+    status: str
     created_at: datetime
     updated_at: datetime
 
@@ -31,6 +33,7 @@ class ScanCreate(ScanBase):
 
 class ScanRead(ScanBase):
     id: uuid.UUID
+    status: str
     created_at: datetime
     updated_at: datetime
 
