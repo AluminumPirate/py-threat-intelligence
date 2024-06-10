@@ -1,7 +1,7 @@
 # Threat Intelligence System 🛡️
 Welcome to the Threat Intelligence System! This project is designed to gather and present data about domain names from various threat intelligence services. It provides a REST API for interacting with the system.
 
-## Short design explanation
+## Short design explanation 💡
 The project contains 3 components. The API server, Database and Scheduler.
 
 * Chosen language is Python using Fast API, pydantic and sqlalchemy.
@@ -14,10 +14,11 @@ The project contains 3 components. The API server, Database and Scheduler.
 
 All are enclosed in a docker container using docker-compose.yml
 
-## Things to point out:
+## Things to point out 👉
 * I have worked on this project for about 1-2 days.
 * I have learned about docker and docker-compose files.
 * I have learned more about sqlalchemy ORM.
+* I have leaned how to create a README file 😉
 
 ## Features ✨
 
@@ -78,6 +79,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 3004 --reload
     The Fast API docs page will be available at: http://localhost:3004/docs
     Or in the docker desktop application of course
 
+### Docker screenshot 📸
+![System Architecture](screenshot2.png)
+
+
 
 ### Scheduled Scans (supported only in linux / docker) ⏰
 To schedule scans every X time, you can use a cron job - Currently set to once a month. 
@@ -98,6 +103,6 @@ You can see more about the cron expression here and choose a different interval:
 * POST /jobs: Run the scan job manually
 
 
-### Fast API Screenshot
+### Fast API Screenshot 📸
 
 ![System Architecture](screenshot.png)
