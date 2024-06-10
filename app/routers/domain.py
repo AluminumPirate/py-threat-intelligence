@@ -55,6 +55,15 @@ async def create_domain(domain_data: DomainCreate, db: Session = Depends(get_db)
     return DomainRead.from_orm(new_domain)
 
 
+@router.delete("/{domain_name}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_domain(domain_name: str, db: Session = Depends(get_db)) -> None:
+    domain = domain_controller.get_domain(domain_name, db)
+    if not domain:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found")
+    domain_controller.delete_domain(domain_name, db)
+    return None
+
+
 @router.get("/all", response_model=List[DomainRead], status_code=status.HTTP_200_OK)
 async def get_all_domains(db: Session = Depends(get_db)):
     domains = domain_controller.get_all_domains(db)

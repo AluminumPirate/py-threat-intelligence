@@ -18,6 +18,14 @@ def get_domain(domain_name: str, db: Session) -> Optional[Domain]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain name format")
 
 
+def delete_domain(domain_name: str, db: Session) -> None:
+    domain = get_domain(domain_name, db)
+    if domain:
+        db.query(Scan).filter(Scan.domain_id == domain.id).delete()
+        db.delete(domain)
+        db.commit()
+
+
 def get_all_scans_for_domain(domain_name: str, db: Session) -> List[Scan]:
     domain = db.query(Domain).filter(Domain.name == domain_name).first()
     if not domain:
@@ -27,7 +35,8 @@ def get_all_scans_for_domain(domain_name: str, db: Session) -> List[Scan]:
     return scans
 
 
-def get_domain_with_latest_scan(domain_name: str, db: Session, exclude_failed: bool = True) -> Tuple[Optional[Domain], Optional[Scan]]:
+def get_domain_with_latest_scan(domain_name: str, db: Session, exclude_failed: bool = True) -> Tuple[
+    Optional[Domain], Optional[Scan]]:
     try:
         domain: Optional[Domain] = db.query(Domain).filter(Domain.name == domain_name).first()
         last_scan: Optional[Scan] = None
