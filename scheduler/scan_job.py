@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv("/app/.env.docker")
 
-environment = os.getenv("ENVIRONMENT")
 api_url = os.getenv("API_URL")
+if api_url is None:
+    api_url = "http://api:3004"
 
 
 def call_api_job(job_name: str):
