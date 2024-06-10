@@ -10,25 +10,6 @@ from starlette import status
 router = APIRouter()
 
 
-# @router.get("/", response_model=DomainRead, status_code=status.HTTP_200_OK)
-# async def get_domain(domain_name: str = Query(..., alias="domain_name"), db: Session = Depends(get_db)):
-#     domain_name = validate_domain_name(domain_name)
-#     if domain_name is None:
-#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain.")
-#
-#     domain, last_scan = domain_controller.get_domain_with_latest_scan(domain_name, db)
-#     if not domain:
-#         domain = domain_controller.create_domain(DomainCreate(name=domain_name), db)
-#
-#     return {
-#         "id": domain.id,
-#         "name": domain.name,
-#         "status": domain.status.value,
-#         "created_at": domain.created_at,
-#         "updated_at": domain.updated_at,
-#         "last_scan": last_scan or {}
-#     }
-
 @router.get("/", response_model=DomainRead, status_code=status.HTTP_200_OK)
 async def get_domain(domain_name: str = Query(..., alias="domain_name"), db: Session = Depends(get_db)) -> DomainRead:
     domain_name = validate_domain_name(domain_name)
