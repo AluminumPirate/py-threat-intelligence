@@ -1,2 +1,2 @@
 # Run the job on the first day of every month at midnight
-* * * * * /usr/local/bin/python3 /app/scan_job.py >> /var/log/cron.log 2>&1
+0 0 1 * * /usr/local/bin/python3 /app/scan_job.py >> /var/log/cron.log 2>&1
