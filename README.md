@@ -1,6 +1,24 @@
 # Threat Intelligence System 🛡️
 Welcome to the Threat Intelligence System! This project is designed to gather and present data about domain names from various threat intelligence services. It provides a REST API for interacting with the system.
 
+## Short design explanation
+The project contains 3 components. The API server, Database and Scheduler.
+
+* Chosen language is Python using Fast API, pydantic and sqlalchemy.
+
+
+* Chosen database is Postgres (Though initially I thought about using MongoDB since we have json data from our api servers, I think the tradeoff for non-indexed joins using Mongo with large amount of collected data in the future would be too much for I\O operations does not worth it).
+
+
+* Scheduling System - I chose to use the cron scheduler because it seems like a good choice - we can configure intervals and even if the service crashed ans we turn it back on it would not matter since we choose a time (x day of the month) and not an actual interval.
+
+All are enclosed in a docker container using docker-compose.yml
+
+## Things to point out:
+* I have worked on this project for about 1-2 days.
+* I have learned about docker and docker-compose files.
+* I have learned more about sqlalchemy ORM.
+
 ## Features ✨
 
 - **Domain Management**: Add, delete, and list domains.
