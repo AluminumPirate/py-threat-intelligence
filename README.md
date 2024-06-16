@@ -53,10 +53,10 @@ All are enclosed in a docker container using docker-compose.yml
     WHOIS_API_KEY=your_whois_api_key
     VIRUSTOTAL_API_KEY=your_virustotal_api_key
    
-    DATABASE_URL=postgresql+psycopg2://user:password@localhost/dbname
+    DATABASE_URL=postgresql+asyncpg://user:password@localhost/db-name
     POSTGRES_USER=username
     POSTGRES_PASSWORD=password
-    POSTGRES_DB=dbname
+    POSTGRES_DB=db-name
     API_URL=http://api:3004
     ```
 
