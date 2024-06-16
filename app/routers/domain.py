@@ -1,69 +1,71 @@
-from app.utils.domain_utils import validate_domain_name
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from typing import List
-from app.controllers import domain_controller
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas import DomainRead, DomainCreate, ScanRead
-from starlette import status
+from app.schemas import DomainRead, DomainCreate, DomainReadWithAllScans, ScanRead
+from app.controllers import domain_controller, scan_controller
 
 router = APIRouter()
 
 
-@router.get("/", response_model=DomainRead, status_code=status.HTTP_200_OK)
-async def get_domain(domain_name: str = Query(..., alias="domain_name"), db: Session = Depends(get_db)) -> DomainRead:
-    domain_name = validate_domain_name(domain_name)
-    if domain_name is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain.")
-
-    domain, last_scan = domain_controller.get_domain_with_latest_scan(domain_name, db)
-    if not domain:
-        domain = domain_controller.create_domain(DomainCreate(name=domain_name), db)
-
-    domain_data = DomainRead.from_orm(domain).dict()
-    domain_data["last_scan"] = last_scan.to_dict() if last_scan else None
-
-    return DomainRead(**domain_data)
-
-
-@router.post("/", response_model=DomainRead, status_code=status.HTTP_201_CREATED)
-async def create_domain(domain_data: DomainCreate, db: Session = Depends(get_db)) -> DomainRead:
-    domain_name = validate_domain_name(domain_data.name)
-    if domain_name is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain.")
-
-    new_domain = domain_controller.create_domain(domain_data, db)
+# Create domain
+@router.post("/", response_model=DomainRead, summary="Create a new domain")
+async def create_domain(domain_data: DomainCreate, db: AsyncSession = Depends(get_db)):
+    new_domain = await domain_controller.create_domain(domain_data, db)
     return DomainRead.from_orm(new_domain)
 
 
-@router.delete("/{domain_name}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_domain(domain_name: str, db: Session = Depends(get_db)) -> None:
-    domain = domain_controller.get_domain(domain_name, db)
-    if not domain:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found")
-    domain_controller.delete_domain(domain_name, db)
+# Delete domain by name
+@router.delete("/{domain_name}", status_code=204, summary="Delete a domain by name")
+async def delete_domain(domain_name: str, db: AsyncSession = Depends(get_db)):
+    await domain_controller.delete_domain(domain_name, db)
     return None
 
 
-@router.get("/all", response_model=List[DomainRead], status_code=status.HTTP_200_OK)
-async def get_all_domains(db: Session = Depends(get_db)):
-    domains = domain_controller.get_all_domains(db)
-    return [DomainRead.from_orm(domain) for domain in domains]
+# Get domain with the latest scan
+@router.get("/{domain_name}", response_model=DomainRead,
+            summary="Get a domain with the latest scan or create it if it doesn't exist")
+async def get_domain(domain_name: str, db: AsyncSession = Depends(get_db)):
+    domain, last_scan = await domain_controller.get_domain_with_latest_scan(domain_name, db)
+    if not domain:
+        domain = await domain_controller.create_domain(DomainCreate(name=domain_name), db)
+        domain_data = DomainRead.from_orm(domain).dict()
+        domain_data["last_scan"] = None
+    else:
+        domain_data = DomainRead.from_orm(domain).dict()
+        domain_data["last_scan"] = ScanRead.from_orm(last_scan).dict() if last_scan else None
+    return DomainRead(**domain_data)
 
 
-@router.get("/scans/{domain_name}", response_model=List[ScanRead], status_code=status.HTTP_200_OK)
-async def get_all_scans(domain_name: str, db: Session = Depends(get_db)) -> List[ScanRead]:
-    scans = domain_controller.get_all_scans_for_domain(domain_name, db)
-    return [ScanRead.from_orm(scan) for scan in scans]
+# Get domain without scan
+@router.get("/{domain_name}/no-scan", response_model=DomainRead, summary="Get a domain without its scans")
+async def get_domain_no_scan(domain_name: str, db: AsyncSession = Depends(get_db)):
+    domain = await domain_controller.get_domain(domain_name, db)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    return DomainRead.from_orm(domain)
 
 
-@router.post("/scan", response_model=ScanRead, status_code=status.HTTP_200_OK)
-async def scan_domain(domain_name: str = Query(..., alias="domain_name"), db: Session = Depends(get_db)) -> ScanRead:
-    domain_name = validate_domain_name(domain_name)
-    if domain_name is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain.")
+# Get domain with all scans
+@router.get("/{domain_name}/all-scans", response_model=DomainReadWithAllScans,
+            summary="Get a domain with all its scans")
+async def get_domain_with_scans(domain_name: str, db: AsyncSession = Depends(get_db)):
+    domain, scans = await domain_controller.get_domain_with_all_scans(domain_name, db)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    domain_data = DomainRead.from_orm(domain)
+    scans_data = [ScanRead.from_orm(scan) for scan in scans]
+    return DomainReadWithAllScans(**domain_data.dict(), scans=scans_data)
 
-    scan = domain_controller.scan_domain(domain_name, db)
-    if not scan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found or scan failed")
+
+# Create scan
+@router.post("/{domain_name}/scan", response_model=ScanRead, summary="Create a scan for a domain")
+async def create_scan(domain_name: str, db: AsyncSession = Depends(get_db)):
+    scan = await scan_controller.create_scan(domain_name, db)
     return ScanRead.from_orm(scan)
+
+
+# Delete scan by ID
+@router.delete("/scan/{scan_id}", status_code=204, summary="Delete a scan by ID")
+async def delete_scan(scan_id: str, db: AsyncSession = Depends(get_db)):
+    await scan_controller.delete_scan(scan_id, db)
+    return None

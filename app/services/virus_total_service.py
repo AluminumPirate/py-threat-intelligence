@@ -1,5 +1,5 @@
 import os
-import requests
+import httpx
 from dotenv import load_dotenv
 from typing import Any, Dict
 from .base_service import BaseService
@@ -12,11 +12,12 @@ VIRUSTOTAL_URL = "https://www.virustotal.com/api/v3/domains/"
 
 @BaseService.register("virustotal")
 class VirusTotalService(BaseService):
-    def get_info(self, domain_name: str) -> Dict[str, Any]:
+    async def get_info(self, domain_name: str) -> Dict[str, Any]:
         headers = {
             "x-apikey": VIRUSTOTAL_API_KEY
         }
-        response = requests.get(f"{VIRUSTOTAL_URL}{domain_name}", headers=headers)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{VIRUSTOTAL_URL}{domain_name}", headers=headers)
 
         if response.status_code == 200:
             return response.json()

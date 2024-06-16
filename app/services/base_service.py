@@ -12,5 +12,5 @@ class BaseService:
 
         return decorator
 
-    def get_info(self, domain_name: str) -> Any:
+    async def get_info(self, domain_name: str) -> Any:
         raise NotImplementedError("Subclasses must implement this method")

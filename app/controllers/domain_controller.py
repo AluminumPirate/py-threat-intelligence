@@ -1,128 +1,112 @@
-from typing import List, Tuple, Optional, Type
+import asyncio
 
-from sqlalchemy import desc
-from sqlalchemy.orm import Session
-from pydantic_core import ValidationError as PydanticValidationError
-from fastapi import HTTPException
-from fastapi import status
-from app.models import Domain, Scan, DomainStatus, ScanStatus
-from app.services.scan_service import perform_scans
+from typing import List, Tuple, Optional
+
+from app.controllers.scan_controller import create_scan
+from app.database import AsyncSessionLocal
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy import delete
+from fastapi import HTTPException, status
+from app.models import Domain, Scan, DomainStatus
 from app.schemas import DomainCreate
 import uuid
 
-
-def get_domain(domain_name: str, db: Session) -> Optional[Domain]:
-    try:
-        return db.query(Domain).filter(Domain.name == domain_name).first()
-    except PydanticValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain name format")
+from sqlalchemy.orm import selectinload
 
 
-def delete_domain(domain_name: str, db: Session) -> None:
-    domain = get_domain(domain_name, db)
-    if domain:
-        db.query(Scan).filter(Scan.domain_id == domain.id).delete()
-        db.delete(domain)
-        db.commit()
+async def get_domain(domain_name: str, db: AsyncSession) -> Optional[Domain]:
+    result = await db.execute(select(Domain).filter(Domain.name == domain_name))
+    return result.scalars().first()
 
 
-def get_all_scans_for_domain(domain_name: str, db: Session) -> List[Scan]:
-    domain = db.query(Domain).filter(Domain.name == domain_name).first()
-    if not domain:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found")
-
-    scans = db.query(Scan).filter(Scan.domain_id == domain.id).order_by(desc(Scan.created_at)).all()
-    return scans
-
-
-def get_domain_with_latest_scan(domain_name: str, db: Session, exclude_failed: bool = True) -> Tuple[
-    Optional[Domain], Optional[Scan]]:
-    try:
-        domain: Optional[Domain] = db.query(Domain).filter(Domain.name == domain_name).first()
-        last_scan: Optional[Scan] = None
-
-        if domain:
-            query = db.query(Scan).filter(Scan.domain_id == domain.id)
-            if exclude_failed:
-                query = query.filter(Scan.status != ScanStatus.failed)
-            last_scan = query.order_by(desc(Scan.created_at)).first()
-
-        return domain, last_scan
-
-    except PydanticValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid domain name format")
-
-
-def create_domain(domain_data: DomainCreate, db: Session) -> Domain:
-    if db.query(Domain).filter(Domain.name == domain_data.name).first():
+async def create_domain(domain_data: DomainCreate, db: AsyncSession) -> Domain:
+    existing_domain = await get_domain(domain_data.name, db)
+    if existing_domain:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Domain already exists")
 
-    new_domain: Domain = Domain(name=domain_data.name, status=DomainStatus.pending)
+    new_domain = Domain(
+        id=uuid.uuid4(),
+        name=domain_data.name,
+        status=DomainStatus.pending
+    )
     db.add(new_domain)
-    db.commit()
-    db.refresh(new_domain)
+    await db.commit()
+    await db.refresh(new_domain)
     return new_domain
 
 
-def get_all_domains(db: Session) -> list[Type[Domain]]:
-    return db.query(Domain).all()
-
-
-def scan_domain(domain_name: str, db: Session) -> Scan:
-    domain = get_domain(domain_name, db)
+async def delete_domain(domain_name: str, db: AsyncSession) -> None:
+    domain = await get_domain(domain_name, db)
     if not domain:
-        # Add domain to analysis list if not found
-        create_domain(DomainCreate(name=domain_name), db)
-        raise HTTPException(status_code=status.HTTP_202_ACCEPTED, detail="Domain added for analysis. Check back later.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Domain not found")
 
-    # Create initial Scan record with status "scanning"
-    scan = Scan(
-        id=uuid.uuid4(),
-        domain_id=domain.id,
-        status=ScanStatus.scanning,
-        data={}
+    # Delete all scans associated with the domain
+    await db.execute(delete(Scan).where(Scan.domain_id == domain.id))
+
+    # Delete the domain
+    await db.execute(delete(Domain).where(Domain.id == domain.id))
+    await db.commit()
+
+
+async def get_domain_with_latest_scan(domain_name: str, db: AsyncSession) -> Tuple[Optional[Domain], Optional[Scan]]:
+    domain = await get_domain(domain_name, db)
+    last_scan = None
+
+    if domain:
+        result = await db.execute(
+            select(Scan).filter(Scan.domain_id == domain.id).order_by(Scan.created_at.desc())
+        )
+        last_scan = result.scalars().first()
+
+    return domain, last_scan
+
+
+async def get_domain_with_all_scans(domain_name: str, db: AsyncSession) -> Tuple[Optional[Domain], List[Scan]]:
+    result = await db.execute(
+        select(Domain).options(selectinload(Domain.scans)).filter(Domain.name == domain_name)
     )
-    db.add(scan)
-    db.commit()
-    db.refresh(scan)
+    domain = result.scalars().first()
+    if not domain:
+        return None, []
 
-    try:
-        # Perform the scans using the generic scan service
-        results, scan_status = perform_scans(domain_name)
-
-        # Update Scan record with results and change status accordingly
-        scan.data = results
-        scan.status = ScanStatus[scan_status.replace(' ', '_')]  # Convert status to enum compatible
-        db.commit()
-        db.refresh(scan)
-
-        # Update domain status to scanned if the scan is successful
-        if scan_status == "completed":
-            domain.status = DomainStatus.scanned
-        else:
-            pass
-            # domain.status = DomainStatus.pending
-
-        db.commit()
-        db.refresh(domain)
-    except Exception as e:
-        # Update Scan record with status "failed" in case of an error
-        scan.status = ScanStatus.failed
-        scan.data = {"error": str(e)}
-        db.commit()
-        db.refresh(scan)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-    return scan
+    scans = domain.scans
+    return domain, scans
 
 
-def scan_domains_job(db: Session) -> list[tuple[Scan, Type[Domain]]]:
-    domains_list = get_all_domains(db)
+async def get_all_domains(db: AsyncSession) -> List[Domain]:
+    result = await db.execute(select(Domain))
+    return result.scalars().all()
 
-    scans_with_domains = []
 
-    for domain in domains_list:
-        scan = scan_domain(domain.name, db)
-        scans_with_domains.append((scan, domain))
+async def get_all_domains_with_scans(db: AsyncSession) -> List[Domain]:
+    result = await db.execute(
+        select(Domain).options(selectinload(Domain.scans))
+    )
+    domains = result.scalars().all()
+    return domains
 
-    return scans_with_domains
+
+async def scan_domains_job(db: AsyncSession) -> List[Tuple[Scan, Domain]]:
+    result = await db.execute(select(Domain))
+    domains_list = result.scalars().all()
+
+    async def scan_domain_task(domain: Domain) -> Tuple[Scan, Domain]:
+        async with AsyncSessionLocal() as session:
+            try:
+
+                scan = await create_scan(domain.name, session)
+
+                return scan, domain
+            except Exception as e:
+                # Handle the exception and return a tuple indicating the failure
+
+                return None, domain
+
+    tasks = [scan_domain_task(domain) for domain in domains_list]
+    scans_with_domains = await asyncio.gather(*tasks)
+
+    # Filter out the failed tasks
+    successful_scans_with_domains = [(scan, domain) for scan, domain in scans_with_domains if scan is not None]
+
+    return successful_scans_with_domains

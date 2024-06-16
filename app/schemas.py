@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 import uuid
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from app.models import ScanStatus
 from app.utils.domain_utils import clean_domain_name, is_valid_domain
 
@@ -54,6 +54,26 @@ class ScanRead(ScanBase):
 class ScanWithDomainRead(BaseModel):
     domain_name: str
     scan: ScanRead
+
+    class Config:
+        from_attributes = True
+
+
+class DomainReadWithLastScan(BaseModel):
+    domain: DomainRead
+    last_scan: Optional[ScanRead]
+
+    class Config:
+        from_attributes = True
+
+
+class DomainReadWithAllScans(BaseModel):
+    id: uuid.UUID
+    name: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    scans: List[ScanRead]
 
     class Config:
         from_attributes = True

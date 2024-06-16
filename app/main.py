@@ -6,12 +6,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import Base, engine
-from app.routers import domain, jobs
-from app.models import *
+from app.database import Base, initialize_database, async_engine
+from app.routers import domain, jobs, domains
+from app.models import *  # Ensure models are imported so Base can see them
 
 # Import service modules to ensure they are registered
-# from app.services import virus_total_service, whois_service, shodan_service
 from app.services import virus_total_service, whois_service, google_dns_service, cloudflare_dns_service, \
     hackertarget_dns_service
 
@@ -27,11 +26,20 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(domain.router, prefix="/domains", tags=["domains"])
+app.include_router(domain.router, prefix="/domain", tags=["domain"])
+app.include_router(domains.router, prefix="/domains", tags=["domains"])
 app.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 
-# Create (if not exists) the database tables
-Base.metadata.create_all(bind=engine)
+# Initialize the database (create if not exists)
+initialize_database()
+
+
+# Create the tables asynchronously
+@app.on_event("startup")
+async def on_startup():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
 
 if __name__ == '__main__':
     import uvicorn
