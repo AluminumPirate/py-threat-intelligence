@@ -13,7 +13,7 @@ class CloudflareDNSService(BaseService):
         }
         params = {
             "name": domain_name,
-            "type": "A"  # You can change this to any DNS record type you need
+            "type": "Any"
         }
         
         async with httpx.AsyncClient() as client:
