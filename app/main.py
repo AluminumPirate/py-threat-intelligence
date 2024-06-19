@@ -14,7 +14,11 @@ from app.models import *  # Ensure models are imported so Base can see them
 from app.services import virus_total_service, whois_service, google_dns_service, cloudflare_dns_service, \
     hackertarget_dns_service
 
-app = FastAPI()
+app = FastAPI(
+    title="Threat Intelligence",
+    version="0.1.2",
+    description="An Async FastAPI Server for Threat Intelligence"
+)
 
 # Middleware configuration
 app.add_middleware(
@@ -26,9 +30,9 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(domain.router, prefix="/domain", tags=["domain"])
-app.include_router(domains.router, prefix="/domains", tags=["domains"])
-app.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
+app.include_router(domain.router, prefix="/domain", tags=["Domain"])
+app.include_router(domains.router, prefix="/domains", tags=["Domains"])
+app.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
 
 # Initialize the database (create if not exists)
 initialize_database()

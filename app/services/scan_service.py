@@ -1,10 +1,12 @@
 from typing import Tuple, Dict, Any
 
+from app.models import ScanStatus
+
 from .base_service import BaseService
 import asyncio
 
 
-async def perform_scans(domain_name: str) -> Tuple[Dict[str, Any], str]:
+async def perform_scans(domain_name: str) -> Tuple[Dict[str, Any], ScanStatus]:
     results: Dict[str, Any] = {}
     statuses: Dict[str, bool] = {}
 
@@ -25,10 +27,10 @@ async def perform_scans(domain_name: str) -> Tuple[Dict[str, Any], str]:
     await asyncio.gather(*tasks)
 
     if all(statuses.values()):
-        scan_status = "completed"
+        scan_status = ScanStatus.completed
     elif any(statuses.values()):
-        scan_status = "partially succeeded"
+        scan_status = ScanStatus.partially_succeeded
     else:
-        scan_status = "failed"
+        scan_status = ScanStatus.failed
 
     return results, scan_status
