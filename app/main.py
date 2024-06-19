@@ -16,7 +16,7 @@ from app.services import virus_total_service, whois_service, google_dns_service,
 
 app = FastAPI(
     title="Threat Intelligence",
-    version="0.1.2",
+    version="0.1.3",
     description="An Async FastAPI Server for Threat Intelligence"
 )
 
