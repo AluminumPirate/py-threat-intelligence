@@ -15,7 +15,6 @@ The project contains 3 components. The API server, Database and Scheduler.
 All are enclosed in a docker container using docker-compose.yml
 
 ## Things to point out 👉
-* I have worked on this project for about 1-2 days.
 * I have learned about docker and docker-compose files.
 * I have learned more about sqlalchemy ORM.
 * I have leaned how to create a README file 😉
