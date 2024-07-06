@@ -55,6 +55,7 @@ env
 /frontend/.vscode/
 /frontend/.idea/
 /frontend/coverage/
+/frontend/package-lock.json
 
 # Ignore specific files and directories in the scheduler
 /scheduler/__pycache__/
