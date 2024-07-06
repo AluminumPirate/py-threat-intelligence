@@ -27,10 +27,10 @@ async def perform_scans(domain_name: str) -> Tuple[Dict[str, Any], ScanStatus]:
     await asyncio.gather(*tasks)
 
     if all(statuses.values()):
-        scan_status = ScanStatus.completed
+        scan_status = ScanStatus.completed.value
     elif any(statuses.values()):
-        scan_status = ScanStatus.partially_succeeded
+        scan_status = ScanStatus.partially_succeeded.value
     else:
-        scan_status = ScanStatus.failed
+        scan_status = ScanStatus.failed.value
 
     return results, scan_status

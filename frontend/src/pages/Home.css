@@ -1,0 +1,17 @@
+.home-container {
+    text-align: center;
+    margin-top: 5vh;
+}
+
+.home-grid {
+    margin-top: 10vh;
+}
+
+.home-card {
+    padding: 10px;
+    transition: transform 0.3s ease;
+}
+
+.home-card:hover {
+    transform: scale(1.05);
+}

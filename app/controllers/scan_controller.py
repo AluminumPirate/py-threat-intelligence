@@ -31,7 +31,7 @@ async def create_scan(domain_name: str, db: AsyncSession) -> Scan:
         await db.refresh(scan)
 
         if scan_status == "completed":
-            domain.status = DomainStatus.scanned
+            domain.status = DomainStatus.scanned.value
             await db.commit()
             await db.refresh(domain)
     except Exception as e:

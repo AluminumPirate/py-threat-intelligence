@@ -1,0 +1,33 @@
+/* src/App.css */
+.App {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 200px;
+  background-color: #f4f4f4;
+  padding: 15px;
+  position: fixed;
+  height: 100%;
+}
+
+.content {
+  margin-left: 220px; /* Ensure content is not hidden behind the sidebar */
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: #333;
+}
