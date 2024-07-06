@@ -1,0 +1,44 @@
+.custom-ui {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 300px;
+    max-width: 90%;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+.custom-ui h1 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.custom-ui p {
+    font-size: 16px;
+    color: #666;
+}
+
+.custom-ui button {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.custom-ui button:hover {
+    background-color: #0056b3;
+}
+
+.custom-ui button:first-of-type {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.custom-ui button:last-of-type {
+    background-color: #ccc;
+    color: #333;
+}

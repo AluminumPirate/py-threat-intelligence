@@ -38,5 +38,17 @@ services:
       - ./scheduler:/app
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      REACT_APP_API_URL: ${API_URL}
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
 volumes:
   db-data:

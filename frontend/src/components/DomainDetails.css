@@ -1,0 +1,82 @@
+.domain-details {
+    /*background-color: #f9f9f9;*/
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 0 5px #6a767a;
+    max-width: 84vw;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.domain-details h2 {
+    margin-bottom: 10px;
+}
+
+.domain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.domain-details pre {
+    /*background-color: #e9ecef;*/
+    max-height: 40vh;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.domain-details .scans-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.domain-details .scans-list li {
+    /*background-color: #fff;*/
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 0 5px #6a767a;
+}
+
+.scan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.scan-header div {
+    flex-grow: 1;
+}
+
+.scan-content {
+    padding: 10px;
+    /*background-color: #f1f1f1;*/
+    border-top: 1px solid rgba(106, 118, 122, 0.48);
+}
+
+.domain-details button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.domain-details button:hover {
+    background-color: #0056b3;
+}
+
+.delete-button {
+    background: transparent none !important;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+    padding: 0;
+}

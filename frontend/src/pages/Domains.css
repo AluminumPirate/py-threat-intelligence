@@ -1,0 +1,76 @@
+.domains-container {
+    max-width: 80vw;
+    /*background-color: #f9f9f9;*/
+    border-radius: 8px;
+    box-shadow: 0 0 5px #6a767a;
+    padding: 20px;
+}
+
+.top-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    flex: 1;
+}
+
+.search-bar input {
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 300px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s;
+}
+
+.search-bar input:focus {
+    /*border-color: #007bff;*/
+    outline: none;
+}
+
+.add-domain-form {
+    margin-left: 20px;
+}
+
+.domains-list-container {
+    /*background-color: #f9f9f9;*/
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 5px #6a767a;
+    max-height: 20vh;
+    overflow-y: auto;
+}
+
+.domains-list {
+    list-style: none;
+    padding: 0;
+}
+
+.domain-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /*background-color: #fff;*/
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 0 5px #6a767a;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.domain-item:hover {
+    background-color: #6a767a;
+}
+
+.delete-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+}

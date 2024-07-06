@@ -45,3 +45,22 @@ docker-compose.override.yml
 # Local virtualenv
 venv
 env
+
+
+# Ignore specific files and directories in the frontend
+/frontend/node_modules/
+/frontend/build/
+/frontend/.env
+/frontend/.eslintcache
+/frontend/.vscode/
+/frontend/.idea/
+/frontend/coverage/
+
+# Ignore specific files and directories in the scheduler
+/scheduler/__pycache__/
+/scheduler/*.py[cod]
+/scheduler/*.egg-info
+/scheduler/logs/
+/scheduler/.env
+/scheduler/.vscode/
+/scheduler/.idea/

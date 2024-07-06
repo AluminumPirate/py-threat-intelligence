@@ -1,0 +1,31 @@
+/* src/components/AddDomainForm.css */
+.inline-form {
+    display: flex;
+    gap: 10px;
+}
+
+.inline-form input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.inline-form button {
+    padding: 10px 15px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.inline-form button:hover {
+    background-color: #0056b3;
+}
+
+.inline-form .error {
+    color: red;
+    margin-top: 10px;
+}

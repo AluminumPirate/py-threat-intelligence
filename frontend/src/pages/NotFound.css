@@ -1,0 +1,10 @@
+.not-found-container {
+    text-align: center;
+    margin-top: 20vh;
+}
+
+.not-found-image {
+    width: 100%;
+    max-width: 40vw;
+    margin: 20px 0;
+}

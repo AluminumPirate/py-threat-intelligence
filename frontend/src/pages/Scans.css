@@ -1,0 +1,56 @@
+/* src/components/Scans.css */
+.scans-container {
+    padding: 20px;
+}
+
+.domains-list-container {
+    margin-bottom: 20px;
+}
+
+.loading-icon {
+    margin-left: 10px;
+    color: orange;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.completed-icon {
+    margin-left: 10px;
+    color: green;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.run-all-button {
+    background-color: #28a745;
+}
+
+.run-all-button:hover {
+    background-color: #218838;
+}
